@@ -30,7 +30,7 @@ PVector[]  points = new PVector[6000000];
 PVector[]  vec = new PVector[6000000];
 int      nrPoints = 0;
 float  theAltitude = 1000; 
-boolean  colorMode = true;
+int  colorMode = 0;
 float  xZoom = 0;
 float  zZoom = 0;
 
@@ -70,8 +70,6 @@ void draw()
       rotateZ(rotX);
       rotateX(rotY);
 
-      // add user zoom
-      translate(xZoom, 0, zZoom);
       
       // scale to fill window      
       scale.x = WINDOW_X / deltaLong * 0.8;    // fill the screen 80%
@@ -79,6 +77,9 @@ void draw()
       scale.z = WINDOW_Y / deltaAlt * 0.8;    // fill the screen 80%
       scale(scale.x, scale.y, scale.z);
         
+      // add user zoom
+ //     translate(xZoom, 0, zZoom);
+
       noFill();
       stroke(0x60, 0x60, 0x60, 0x50);
       for (int alt=0; alt <= 20000; alt += 1000)
@@ -89,12 +90,13 @@ void draw()
           rotate(PI, 1, 0, 0);
 //          scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
           scale(.02, .02, 1.0);
-          fill(0xFF, 0xFF, 0xFF, 0x50);
+          fill(0xFF, 0xFF, 0xFF, 0xF8);
           textSize(32);
           text(str(alt), 0, 0, 0);
         }
         popMatrix();
-        
+ 
+ /*    
         pushMatrix();
         {
 //          fill((alt % 10000) * 0xFF / 10000);
@@ -109,7 +111,7 @@ void draw()
           endShape(CLOSE);
         }
         popMatrix();
-        
+  */  
       }
       
       pushMatrix();
@@ -118,7 +120,8 @@ void draw()
         PVector  p1 = new PVector();
         
         noSmooth();
-        stroke(0x0, 0x80, 0x00);
+ //       stroke(0x0, 0x80, 0x00);
+        strokeWeight(0.25);
         for (int index=0; index < nrPoints; index += 5)
         {
             // HACK - swap x/y lat/long
@@ -134,8 +137,27 @@ void draw()
             p1.y = p0.y + (vec[index].x * 0.010);
             p1.z = p0.z + (vec[index].z * 100); //* 0.10);
             
-            if (colorMode)
-              stroke(Color.getHSBColor(vec[index].x, vec[index].y, vec[index].z).getRGB());
+            switch (colorMode)
+            {
+              case 0:
+                stroke(Color.getHSBColor(vec[index].x, vec[index].y, vec[index].z).getRGB(), 0xF7);
+                break;
+              case 1:
+                stroke(Color.getHSBColor(vec[index].x, vec[index].z, vec[index].y).getRGB(), 0xF7);
+                break;
+              case 2:
+                stroke(Color.getHSBColor(vec[index].y, vec[index].x, vec[index].z).getRGB(), 0xF7);
+                break;
+              case 3:
+                stroke(Color.getHSBColor(vec[index].y, vec[index].z, vec[index].x).getRGB(), 0xF7);
+                break;
+              case 4:
+                stroke(Color.getHSBColor(vec[index].z, vec[index].x, vec[index].y).getRGB(), 0xF7);
+                break;
+              case 5:
+                stroke(Color.getHSBColor(vec[index].z, vec[index].y, vec[index].x).getRGB(), 0xF7);
+                break;
+            }
 
             line( p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
  
@@ -169,8 +191,8 @@ void mouseDragged()
  */
 }
 
-static final int VK_KP_DOWN = 225;
-static final int VK_KP_UP = 224;
+static final int ZOOM = 100;
+
 void keyPressed()
 {
   println("pressed " + int(key) + " " + keyCode);
@@ -185,20 +207,22 @@ void keyPressed()
       theAltitude -= 1000.0;
       break;
     case 'c':
-      colorMode = !colorMode;
+      colorMode = (++colorMode > 5) ? 0 : colorMode;
       break;
+/*
     case 37:  // left arrow
-      xZoom -= 5;
+      cameraX -= ZOOM;
       break;
     case 39:  // right arrow
-      xZoom += 5;
+      cameraX += ZOOM;
       break;
     case 38:  // up arrow
-      zZoom += 5;
+      cameraZ += ZOOM;
       break;
     case 40:  // down arrow
-      zZoom -= 5;
+      cameraZ -= ZOOM;
       break;
+ */
   }
   theAltitude = (theAltitude > maxAlt) ? maxAlt : theAltitude;
   theAltitude = (theAltitude < minAlt) ? minAlt : theAltitude;
