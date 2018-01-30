@@ -1,7 +1,7 @@
 import processing.core.*; 
+import processing.opengl.*;
 import processing.data.*; 
 import processing.event.*; 
-import processing.opengl.*; 
 
 import java.awt.datatransfer.*; 
 import java.awt.Toolkit; 
@@ -22,7 +22,7 @@ static int WINDOW_Y = 768;
 static int WINDOW_X_2 = WINDOW_X / 2;
 static int WINDOW_Y_2 = WINDOW_Y / 2;
 
-static String fileName = "wind.csv";
+static String fileName = "/data/Perlan/wind.csv";
 BufferedReader reader;
 String line = "";
 
@@ -48,13 +48,26 @@ int  colorMode = 0;
 float  xZoom = 0;
 float  zZoom = 0;
 
+public void settings()
+{
+	size(800, 1024, P3D); 
+    smooth();
+}
+
+public void setup() 
+{
+	surface.setResizable(true);
+	loadFile(fileName);
+//  stubFile();
+}
+
 public void draw()
 {
   PVector  scale  = new PVector();
 
   background(0, 0, 0);
   lights();
- // noSmooth();
+
   
   /*
     Processing 3D coords are x (left-to-right), y (up-to-down), and z (back-to-front)
@@ -133,7 +146,6 @@ public void draw()
         PVector  p0 = new PVector();
         PVector  p1 = new PVector();
         
-        noSmooth();
  //       stroke(0x0, 0x80, 0x00);
         strokeWeight(0.25f);
         for (int index=0; index < nrPoints; index += 5)
@@ -149,8 +161,11 @@ public void draw()
             // HACK - swap x/y lat/long
             p1.x = p0.x + (vec[index].y * 0.010f);
             p1.y = p0.y + (vec[index].x * 0.010f);
-            p1.z = p0.z + (vec[index].z * 100); //* 0.10);
-            
+//            p1.z = p0.z + (vec[index].z * 100); //* 0.10);
+            p1.z = p0.z;
+
+/* FALSE COLOR
+
             switch (colorMode)
             {
               case 0:
@@ -172,7 +187,25 @@ public void draw()
                 stroke(Color.getHSBColor(vec[index].z, vec[index].y, vec[index].x).getRGB(), 0xF7);
                 break;
             }
-
+ */
+// /* z Color
+            	
+            double zColor = vec[index].z;
+            int theColor = 0;
+            if (zColor > 0)
+            {
+            	zColor =  (zColor * 0xFF) / 1.33;
+            	theColor = color(0x00, (int) zColor, 0x00, 0xF8);
+            }
+            else 
+            {
+            	zColor = (-zColor * 0xFF) / 1.33;
+            	theColor = color((int)zColor, 0x00, 0x00, 0xF8);
+            }
+            stroke(theColor);
+ // */
+            
+            // actually paint the vector
             line( p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
  
  /*           
@@ -251,19 +284,6 @@ public void textUp(String s, float x, float y, float z)
   popMatrix();
 }
 
-
-public void setup() 
-{
-  size(WINDOW_X, WINDOW_Y, P3D);
-  frameRate(30);
-  if (frame != null) {
-    frame.setResizable(true);
-  }
-
-  loadFile(fileName);
-//  stubFile();
-}
-
 public void stubFile()
 {
       minLat = -54.0f;
@@ -291,7 +311,9 @@ public void loadFile(String fileName)
     try 
     {
       line = reader.readLine();
-    } catch (IOException e) {
+    } 
+    catch (IOException e) 
+    {
       e.printStackTrace();
       line = null;
     }
@@ -359,10 +381,6 @@ public void loadFile(String fileName)
 } 
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "windField" };
-    if (passedArgs != null) {
-      PApplet.main(concat(appletArgs, passedArgs));
-    } else {
-      PApplet.main(appletArgs);
-    }
+    PApplet.main(concat(appletArgs, passedArgs));
   }
 }
