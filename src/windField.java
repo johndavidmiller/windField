@@ -17,8 +17,8 @@ import java.io.IOException;
 
 public class windField extends PApplet {
 
-static int WINDOW_X = 1080;
-static int WINDOW_Y = 768;
+static int WINDOW_X = 800;
+static int WINDOW_Y = 1000;
 static int WINDOW_X_2 = WINDOW_X / 2;
 static int WINDOW_Y_2 = WINDOW_Y / 2;
 
