@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="data"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/Applications/Processing.app/Contents/Java/core/library/core.jar" sourcepath="/Users/jdmille2/Workbench/Processing3/repo/core">
+	<classpathentry kind="lib" path="/Applications/Processing.app/Contents/Java/core/library/core.jar" sourcepath="/Users/jdmille2/workbench/Processing/processing/core/src/processing">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/Users/jdmille2/Workbench/Processing3/repo/build/javadoc/core/"/>
 		</attributes>
@@ -18,5 +17,6 @@
 	<classpathentry kind="lib" path="/Applications/Processing.app/Contents/Java/core/library/jogl-all-natives-macosx-universal.jar"/>
 	<classpathentry kind="lib" path="/Applications/Processing.app/Contents/Java/core/library/jogl-all-natives-windows-i586.jar"/>
 	<classpathentry kind="lib" path="/Applications/Processing.app/Contents/Java/core/library/jogl-all.jar"/>
+	<classpathentry kind="lib" path="/Users/jdmille2/workbench/Processing/my_sketchbooks/libraries/Nest/library/Nest.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
