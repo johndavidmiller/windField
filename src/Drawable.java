@@ -66,10 +66,10 @@ public class Drawable implements PConstants {
 		this.mat.rotateZ(this.rotation.z);
 		this.mat.scale(this.scale.x, this.scale.y, this.scale.z);
 	}
-	public PVector getPos() {
+	public PVector getPosition() {
 		return pos;
 	}
-	public void setPos(PVector pos) {
+	public void setPosition(PVector pos) {
 		this.pos = pos;
 		this.recomputeMatrix();
 	}
