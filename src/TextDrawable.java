@@ -31,8 +31,7 @@ public class TextDrawable extends Drawable {
 		
         //p.translate(-(deltaLong_2), -deltaLat_2, alt);
         p.rotate(PI, 1, 0, 0);
-//          scale(1.0 / scale.x, 1.0 / scale.y, 1.0 / scale.z);
-        p.scale(.02f, .02f, 1.0f);
+        p.scale(.02f, .02f, 1.0f); // why does this need to be scaled so aggressively?
         p.fill(0xFF, 0xFF, 0xFF, 0xF8);
         p.textSize(this.pointSize);
         p.text(this.string, 0, 0, 0);

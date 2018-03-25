@@ -41,9 +41,7 @@ public class windField extends PApplet {
 	static float PI_4 = PI / 4.0f;
 	static float PI_8 = PI / 8.0f;
 
-	PVector[] points = new PVector[6000000];
-	PVector[] vec = new PVector[6000000];
-	int nrPoints = 0;
+
 	float theAltitude = 1000;
 	int colorMode = 0;
 	float xZoom = 0;
@@ -63,7 +61,7 @@ public class windField extends PApplet {
 		floor = new ImageDrawable(this, "Floor");
 		floor.m_image = loadImage("/data/Perlan/staticmap_cropped.png");
 		print("Floor image size=(" + str(floor.m_image.width) + ", " + str(floor.m_image.height) + ")");
-		floor.setPos(new PVector(-floor.m_image.width, -floor.m_image.height, 0.0f));
+		floor.setPosition(new PVector(-floor.m_image.width, -floor.m_image.height, 0.0f));
 		floor.setScale(new PVector(2f, 2f, 2f));
 
 		loadFile(fileName);
@@ -145,7 +143,7 @@ public class windField extends PApplet {
 				stroke(0x60, 0x60, 0x60, 0x50);
 				for (int alt = 0; alt <= 20000; alt += 1000) {
 			        //p.translate(-(deltaLong_2), -deltaLat_2, alt);
-					altLabel[alt/1000].setPos(new PVector(-(deltaLong_2), -deltaLat_2, alt));
+					altLabel[alt/1000].setPosition(new PVector(-(deltaLong_2), -deltaLat_2, alt));
 					altLabel[alt/1000].draw();
 	
 					/*
@@ -312,7 +310,6 @@ public class windField extends PApplet {
 				line = null;
 			}
 			if (line == null) {
-				// Stop reading because of an error or file is empty
 				println("latitude=[ " + str(minLat) + ", " + str(maxLat));
 				println("longitude=[ " + str(minLong) + ", " + str(maxLong));
 				println("altitude=[ " + str(minAlt) + ", " + str(maxAlt));
