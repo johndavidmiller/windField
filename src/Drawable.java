@@ -3,29 +3,29 @@ import processing.core.*;
 import processing.event.*; 
 
 
-public class Drawable implements PConstants {
-	public enum LogLevel {
-		NONE,
-		ERROR,
-		WARNING,
-		INFO,
-	};
-
+public abstract class Drawable implements PConstants {
 	PApplet p;
-	String className = this.getClass().getName();
+	String className;
 	String objectName = "";
-
-	LogLevel logLevel = LogLevel.WARNING;			// debug level
 
 	PVector pos;
 	PVector scale;
 	PVector rotation;
 	PMatrix3D mat;
 
-	
+	public enum LogLevel {
+		NONE,
+		ERROR,
+		WARNING,
+		INFO,
+	};
+	LogLevel logLevel = LogLevel.WARNING;			// debug level
+		
+
 	public Drawable(PApplet parent, String objectName) {
-		this.p 			= parent;
+		this.p = parent;
 		this.objectName	= objectName;
+		this.className = this.getClass().getName();
 		
 		/*
 		 * jdm sez: it's nice that Processing provides these callbacks,
@@ -53,10 +53,6 @@ public class Drawable implements PConstants {
 		this.recomputeMatrix();
 	}
 	
-	public void log(String msg, LogLevel level) {
-		System.out.println(this.className + msg + " " + this.objectName);
-	}
-
 	// Transform ------------------------------------
 	void recomputeMatrix() {
 		this.mat.reset();
@@ -89,6 +85,9 @@ public class Drawable implements PConstants {
 	}
 	//------------------------------------------------
 	
+	public void log(String msg, LogLevel level) {
+		System.out.println(this.className + msg + " " + this.objectName);
+	}
 
 	public void setup() {
 		//this.log("::setup");
@@ -102,7 +101,7 @@ public class Drawable implements PConstants {
 		//this.log("::pre");		
 	}
 	public boolean visible = true;
-	public void doDraw() {};			// must be implemented by subclasses
+	public abstract void doDraw();			// must be implemented by subclasses
 	public void draw() {
 		if (this.visible != true)
 			return;
