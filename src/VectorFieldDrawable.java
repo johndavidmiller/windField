@@ -3,19 +3,19 @@ import java.io.IOException;
 import processing.core.*;
 
 public class VectorFieldDrawable extends Drawable {
-	public float minLat  = 999999, maxLat  = -999999, deltaLat  = 0;
-	public float minLong = 999999, maxLong = -999999, deltaLong = 0;
-	public float minAlt  = 999999, maxAlt  = -999999, deltaAlt  = 0;
-	protected PVector dimensions_min;
-	protected PVector dimensions_max;
-	protected PVector dimensions_delta;
 	
-	public PVector[] points = new PVector[6000000];
-	public PVector[] vec = new PVector[6000000];
-	public int nrPoints = 0;
+	public PVector[] m_points = new PVector[6000000];
+	public PVector[] m_vecs = new PVector[6000000];
+	public int m_nrPoints = 0;
 
-	public VectorFieldDrawable(PApplet parent, String objectName) {
-		super(parent, objectName);
+	public VectorFieldDrawable(PApplet papp, String objectName) {
+		super(papp, objectName);
+		m_bbox = new MBoundingBox(
+						papp, 
+						"vector field bbox", 
+						new PVector(99999, 99999, 99999),
+						new PVector(-99999, -99999, -99999)
+					);
 	}
 
 	public void doDraw() {
@@ -23,17 +23,13 @@ public class VectorFieldDrawable extends Drawable {
 	
 	public void load(String fileName) {
 		if (fileName == null) {
-			this.minLat = -54.0f;
-			this.maxLat = -44.0f;
-			this.deltaLat = maxLat - minLat;
+			m_bbox.m_ll.x = -54.0f;	// lat
+			m_bbox.m_ll.y = 280;		// long
+			m_bbox.m_ll.z = 0;		// altitude
 
-			this.minLong = 280;
-			this.maxLong = 295;
-			this.deltaLong = this.maxLong - this.minLong;
-
-			this.minAlt = 0;
-			this.maxAlt = 20000;
-			this.deltaAlt = this.maxAlt - this.minAlt;
+			m_bbox.m_ur.x = -44.0f;
+			m_bbox.m_ur.y = 295;
+			m_bbox.m_ur.z = 20000;
 		}
 		
 		BufferedReader reader;
@@ -49,15 +45,9 @@ public class VectorFieldDrawable extends Drawable {
 				e.printStackTrace();
 				line = null;
 			}
-			if (line == null) {
-				this.log("latitude=[ " + PApplet.str(this.minLat) + ", " + PApplet.str(this.maxLat), LogLevel.INFO);
-				this.log("longitude=[ " + PApplet.str(this.minLong) + ", " + PApplet.str(this.maxLong), LogLevel.INFO);
-				this.log("altitude=[ " + PApplet.str(this.minAlt) + ", " + PApplet.str(this.maxAlt), LogLevel.INFO);
-				this.log("time to load: " + PApplet.str(p.millis() - startTime), LogLevel.INFO);
-				return;
-			} else {
-				if (0 == (nrPoints % 1000000)) {
-					this.log(PApplet.str(nrPoints), LogLevel.INFO);
+			if (line != null) {
+				if (0 == (m_nrPoints % 1000000)) {
+					log(PApplet.str(m_nrPoints), LogLevel.INFO);
 				}
 
 				String[] pieces = PApplet.split(line, ',');
@@ -74,30 +64,31 @@ public class VectorFieldDrawable extends Drawable {
 					continue;
 				}
 
-				points[nrPoints] = new PVector();
-				points[nrPoints].x = latitude;
-				points[nrPoints].y = longitude;
-				points[nrPoints].z = altitude;
+				// remember the location and vector
+				m_points[m_nrPoints] = new PVector(latitude, longitude, altitude);
+				m_vecs[m_nrPoints]   = new PVector(_x, _y, _z);
 
-				vec[nrPoints] = new PVector();
-				vec[nrPoints].x = _x;
-				vec[nrPoints].y = _y;
-				vec[nrPoints].z = _z;
+				// check extents
+				m_bbox.m_ll.x = (latitude < m_bbox.m_ll.x) ? latitude : m_bbox.m_ll.x;
+				m_bbox.m_ur.x = (latitude > m_bbox.m_ur.x) ? latitude : m_bbox.m_ur.x;
 
-				this.minLat = (latitude < this.minLat) ? latitude : this.minLat;
-				this.maxLat = (latitude > this.maxLat) ? latitude : this.maxLat;
+				m_bbox.m_ll.y = (longitude < m_bbox.m_ll.y) ? longitude : m_bbox.m_ll.y;
+				m_bbox.m_ur.y = (longitude > m_bbox.m_ur.y) ? longitude : m_bbox.m_ur.y;
 
-				this.minLong = (longitude < this.minLong) ? longitude : this.minLong;
-				this.maxLong = (longitude > this.maxLong) ? longitude : this.maxLong;
+				m_bbox.m_ll.z = (altitude < m_bbox.m_ll.z) ? altitude : m_bbox.m_ll.z;
+				m_bbox.m_ur.z = (altitude > m_bbox.m_ur.z) ? altitude : m_bbox.m_ur.z;
 
-				this.minAlt = (altitude < this.minAlt) ? altitude : this.minAlt;
-				this.maxAlt = (altitude > this.maxAlt) ? altitude : this.maxAlt;
-
-				nrPoints += 1;
+				m_nrPoints += 1;
 			}
-			this.deltaLat = this.maxLat - this.minLat;
-			this.deltaLong = this.maxLong - this.minLong;
-			this.deltaAlt = this.maxAlt - this.minAlt;
 		}
+
+		m_bbox.calcSize();
+		log("latitude=[ "  + PApplet.str(m_bbox.m_ll.x) + ", " + PApplet.str(m_bbox.m_ur.x) + "]", LogLevel.INFO);
+		log("longitude=[ " + PApplet.str(m_bbox.m_ll.y) + ", " + PApplet.str(m_bbox.m_ur.y) + "]", LogLevel.INFO);
+		log("altitude=[ "  + PApplet.str(m_bbox.m_ll.z) + ", " + PApplet.str(m_bbox.m_ur.z) + "]", LogLevel.INFO);
+		log("size=[ "    + PApplet.str(m_bbox.m_size.x) + ", " + 
+								PApplet.str(m_bbox.m_size.y) + ", " + 
+								PApplet.str(m_bbox.m_size.z) + "]", LogLevel.INFO);
+		log("time to load: " + PApplet.str(p.millis() - startTime), LogLevel.INFO);
 	}
 }

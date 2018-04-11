@@ -3,30 +3,38 @@ import processing.core.*;
 
 
 public class TextDrawable extends Drawable {
-	public String string;
-	public float pointSize = 18f;
+	public String m_string;
+	public float m_pointSize = 18f;
+	public boolean m_billboard = false;
+	public PColor 
 	
-	public TextDrawable(PApplet parent, String objectName) {
-		super(parent, objectName);
+	public TextDrawable(PApplet papp, String objectName) {
+		super(papp, objectName);
+	}
+	public TextDrawable(PApplet papp, String objectName, String string) {
+		this(papp, objectName);
+		m_string = string;
 	}
 	
 	public void doDraw() {
-		if (this.string == null)
+		if (m_string == null)
 			return;
 		
-        //p.translate(-(deltaLong_2), -deltaLat_2, alt);
-        p.rotate(PI, 1, 0, 0);
+		if (m_billboard) {
+			// billboard, to face the camera
+
+			float rotX = ((windField) p).m_rotx;
+			float rotY = ((windField) p).m_roty;
+			//PApplet.println("xrot= " + PApplet.str(rotX) + "yrot= " + PApplet.str(rotY) );
+			p.rotateX(rotY);
+			p.rotateZ(rotX);
+			p.rotateX(-PI/2f);
+		}
+
         p.scale(.02f, .02f, 1.0f); // why does this need to be scaled so aggressively?
         p.fill(0xFF, 0xFF, 0xFF, 0xF8);
-        p.textSize(this.pointSize);
-        p.text(this.string, 0, 0, 0);
-	}
-
-	public void textUp(String s, float x, float y, float z) {
-		this.p.pushMatrix();
-		this.p.translate(x, y, z);
-		this.p.scale(1.0f, -1.0f, 1.0f);
-		this.p.text(s, 0, 0);
-		this.p.popMatrix();
+        p.textSize(m_pointSize);
+        flipY((int)m_pointSize);
+        p.text(m_string, 0, 0, 0);
 	}
 }

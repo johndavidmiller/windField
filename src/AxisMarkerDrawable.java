@@ -19,10 +19,12 @@ import java.io.IOException;
 
 public class AxisMarkerDrawable extends Drawable {
 	public PImage m_image;
-	public boolean billboard = false;
+	public boolean m_billboard = false;
+	protected TextDrawable m_label;
 	
-	public AxisMarkerDrawable(PApplet parent, String objectName) {
-		super(parent, objectName);
+	public AxisMarkerDrawable(PApplet papp, String objectName) {
+		super(papp, objectName);
+		m_label = new TextDrawable(papp, objectName + "_label", objectName);
 	}
 	
 	public void doDraw() {
@@ -42,85 +44,76 @@ public class AxisMarkerDrawable extends Drawable {
 		 * looking down the axis FROM the origin.
 		 */
 		
-		this.p.noStroke();
+		p.noStroke();
 		
-		this.p.pushMatrix();
-			this.p.fill(255, 255, 255);
-			this.p.translate(110, 0, 0);			// position beyond cylinder, drawn below
-			this.p.scale(1.0f, -1.0f, 1.0f);   // flip because of stupid Y axis pointing down
+		p.pushMatrix();
+			p.fill(255, 255, 255);
+			p.translate(110, 0, 0);			// position beyond cylinder, drawn below
+			p.scale(1.0f, -1.0f, 1.0f);   // flip because of stupid Y axis pointing down
 
-			if (billboard) {
-				// billboard, to face the camera
-
-				float rotX = ((windField) this.p).rotX;
-				float rotY = ((windField) this.p).rotY;
-				//PApplet.println("xrot= " + PApplet.str(rotX) + "yrot= " + PApplet.str(rotY) );
-				this.p.rotateX(rotY);
-				this.p.rotateZ(rotX);
-				this.p.rotateX(-PI/2f);
-			}
-			this.p.text(this.objectName, 0, 0);
-		this.p.popMatrix();
+			m_label.m_billboard = m_billboard;
+			m_label.draw();
+		p.popMatrix();
 		
 		// x
-		this.p.pushMatrix();
-			this.p.rotateZ(-PI / 2.0f);	// rotate along +Z by -90 degrees for X axis
-			this.p.fill(255, 0, 0);
+		p.pushMatrix();
+			p.rotateZ(-PI / 2.0f);	// rotate along +Z by -90 degrees for X axis
+			p.fill(255, 0, 0);
 			drawCylinder(10, 10, 100, 50); // Draw a cylinder
-		this.p.popMatrix();
+		p.popMatrix();
 			
 		// y
-		this.p.pushMatrix();
-			this.p.fill(0, 255, 0);			// no rotation needed for Y, given how we draw the cyl
+		p.pushMatrix();
+			p.fill(0, 255, 0);			// no rotation needed for Y, given how we draw the cyl
 			drawCylinder(10, 10, 100, 50); // Draw a cylinder
-		this.p.popMatrix();
+		p.popMatrix();
 
 		// z
-		this.p.pushMatrix();
-			this.p.rotateX(PI / 2.0f);	// rotate along +X by 90 degrees for Z axis
-			this.p.fill(0, 0, 255);
+		p.pushMatrix();
+			p.rotateX(PI / 2.0f);	// rotate along +X by 90 degrees for Z axis
+			p.fill(0, 0, 255);
 			drawCylinder(10, 10, 100, 50); // Draw a cylinder
-		this.p.popMatrix();
+		p.popMatrix();
 
 	}
 	
 	public void drawCylinder(float topRadius, float bottomRadius, float tall, int sides) {
 		float angle = 0;
 		float angleIncrement = TWO_PI / sides;
-		this.p.beginShape(QUAD_STRIP);
+		p.beginShape(QUAD_STRIP);
 		for (int i = 0; i < sides + 1; ++i) {
-			this.p.vertex(topRadius * PApplet.cos(angle), 0, topRadius * PApplet.sin(angle));
-			this.p.vertex(bottomRadius * PApplet.cos(angle), tall, bottomRadius * PApplet.sin(angle));
+			p.vertex(topRadius * PApplet.cos(angle), 0, topRadius * PApplet.sin(angle));
+			p.vertex(bottomRadius * PApplet.cos(angle), tall, bottomRadius * PApplet.sin(angle));
 			angle += angleIncrement;
 		}
-		this.p.endShape();
+		p.endShape();
 
 		// If it is not a cone, draw the circular top cap
 		if (topRadius != 0) {
 			angle = 0;
-			this.p.beginShape(TRIANGLE_FAN);
+			p.beginShape(TRIANGLE_FAN);
 
 			// Center point
-			this.p.vertex(0, 0, 0);
+			p.vertex(0, 0, 0);
 			for (int i = 0; i < sides + 1; i++) {
-				this.p.vertex(topRadius * PApplet.cos(angle), 0, topRadius * PApplet.sin(angle));
+				p.vertex(topRadius * PApplet.cos(angle), 0, topRadius * PApplet.sin(angle));
 				angle += angleIncrement;
 			}
-			this.p.endShape();
+			p.endShape();
 		}
 
 		// If it is not a cone, draw the circular bottom cap
 		if (bottomRadius != 0) {
 			angle = 0;
-			this.p.beginShape(TRIANGLE_FAN);
+			p.beginShape(TRIANGLE_FAN);
 
 			// Center point
-			this.p.vertex(0, tall, 0);
+			p.vertex(0, tall, 0);
 			for (int i = 0; i < sides + 1; i++) {
-				this.p.vertex(bottomRadius * PApplet.cos(angle), tall, bottomRadius * PApplet.sin(angle));
+				p.vertex(bottomRadius * PApplet.cos(angle), tall, bottomRadius * PApplet.sin(angle));
 				angle += angleIncrement;
 			}
-			this.p.endShape();
+			p.endShape();
 		}
 	}
 }

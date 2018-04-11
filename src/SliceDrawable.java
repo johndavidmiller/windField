@@ -1,103 +1,101 @@
 import processing.core.*;
 import java.awt.Color;
 
-public class SliceDrawable extends Drawable {
-	public int colorMode = 0;
-	public float minLat  = 999999, maxLat  = -999999, deltaLat  = 0;
-	public float minLong = 999999, maxLong = -999999, deltaLong = 0;
-	public float minAlt  = 999999, maxAlt  = -999999, deltaAlt  = 0;
-	public PVector[] points;
-	public PVector[] vec;
-	public int nrPoints = 0;
-	protected VectorFieldDrawable vectorField;
+public class SliceDrawable extends VectorFieldDrawable {
+	public int m_colorMode = 0;
+	public TextDrawable m_label;
+	public boolean m_drawGrid = true;
 
-	public SliceDrawable(PApplet parent, String objectName, VectorFieldDrawable vf) {
-		super(parent, objectName);
-		this.vectorField = vf;
+	public SliceDrawable(PApplet papp, String objectName) {
+		super(papp, objectName);
+		m_label = new TextDrawable(papp, objectName);
 	}
 	
-	public int slice(int minAlt, int maxAlt) {
+	public int sliceFromVectorField(VectorFieldDrawable vf, int minAlt, int maxAlt) {
+		log("sliceFromVectorField", LogLevel.INFO);
+		
 		// find out how many points we need to allocate
 		int count = 0;
-		for (int index = 0; index < this.vectorField.nrPoints; index++) {
-			if ((this.vectorField.points[index].z >= minAlt) &&
-				(this.vectorField.points[index].z <= maxAlt))
+		for (int index = 0; index < vf.m_nrPoints; index++) {
+			if ((vf.m_points[index].z >= minAlt) &&
+				(vf.m_points[index].z <= maxAlt))
 				count++;
 		}
-		
-		this.points = new PVector[count];
-		this.vec = new PVector[count];
-		this.nrPoints = count;
-		
+		log("nrPoints=" + PApplet.str(count), LogLevel.INFO);
+				
 		// copy the dater
-		count = 0;
-		for (int index = 0; index < this.vectorField.nrPoints; index++) {
-			PVector pt = this.points[count];
+		m_bbox.reset();
+		m_points = new PVector[count];
+		m_vecs = new PVector[count];
+		m_nrPoints = 0;
+		for (int index = 0; index < vf.m_nrPoints; index++) {
+			PVector pt = vf.m_points[index];
 			float latitude = pt.x;
 			float longitude = pt.y;
 			float altitude = pt.z;
 			
 			if ((altitude >= minAlt) && (altitude <= maxAlt)) {
+				// remember the location and vector
+				m_points[m_nrPoints] = new PVector(latitude, longitude, altitude);
+				m_vecs[m_nrPoints] = new PVector(vf.m_vecs[index].x, vf.m_vecs[index].y, vf.m_vecs[index].z);
 
-				this.points[count] = this.vectorField.points[index];
-				this.vec[count] = this.vectorField.vec[index];
+				// check extents
+				m_bbox.m_ll.x = (latitude < m_bbox.m_ll.x) ? latitude : m_bbox.m_ll.x;
+				m_bbox.m_ur.x = (latitude > m_bbox.m_ur.x) ? latitude : m_bbox.m_ur.x;
 
-				this.minLat = (latitude < this.minLat) ? latitude : this.minLat;
-				this.maxLat = (latitude > this.maxLat) ? latitude : this.maxLat;
+				m_bbox.m_ll.y = (longitude < m_bbox.m_ll.y) ? longitude : m_bbox.m_ll.y;
+				m_bbox.m_ur.y = (longitude > m_bbox.m_ur.y) ? longitude : m_bbox.m_ur.y;
 
-				this.minLong = (longitude < this.minLong) ? longitude : this.minLong;
-				this.maxLong = (longitude > this.maxLong) ? longitude : this.maxLong;
+				m_bbox.m_ll.z = (altitude < m_bbox.m_ll.z) ? altitude : m_bbox.m_ll.z;
+				m_bbox.m_ur.z = (altitude > m_bbox.m_ur.z) ? altitude : m_bbox.m_ur.z;
 
-				this.minAlt = (altitude < this.minAlt) ? altitude : this.minAlt;
-				this.maxAlt = (altitude > this.maxAlt) ? altitude : this.maxAlt;
-
-				count++;
+				m_nrPoints += 1;
+				assert(m_nrPoints <= count);
 			}
-			this.deltaLat = this.maxLat - this.minLat;
-			this.deltaLong = this.maxLong - this.minLong;
-			this.deltaAlt = this.maxAlt - this.minAlt;
-		}
-		
+		}	
+ 		m_bbox.calcSize();
+		log("bbox=" + m_bbox.toString(), LogLevel.INFO);
 		return count;	// nr points sliced
 	}
 	
 	public void doDraw() {
-		PVector p0 = new PVector();
-		PVector p1 = new PVector();
-
+		p.scale(10f, 10f, 1f);
 		// stroke(0x0, 0x80, 0x00);
 		p.strokeWeight(0.25f);
-		for (int index = 0; index < this.nrPoints; index += 5) {
+		for (int index = 0; index < m_nrPoints; index += 1) {
 
 			// swap x/y lat/long
 			// TODO: if these coords aren't true and need to be swapped, we should do it once
 			// e.g., during load, rather than expect it to be done every draw!!
-			p1.x = p0.x + (vec[index].y * 0.010f);
-			p1.y = p0.y + (vec[index].x * 0.010f);
-			p1.z = p0.z + (vec[index].z * 100); // * 0.10);
-			// p1.z = p0.z;
+			PVector vec = new PVector(this.m_vecs[index].x, this.m_vecs[index].y, this.m_vecs[index].z);
+			PVector p0 = new PVector(this.m_points[index].x, this.m_points[index].y, this.m_points[index].z);
+			PVector p1 = new PVector(
+					p0.x + (vec.y * 0.010f),
+					p0.y + (vec.x * 0.010f),
+					p0.z + (vec.z * 100)
+					);
 
-			switch (this.colorMode) {
+			switch (m_colorMode) {
 			case 0:
-				p.stroke(Color.getHSBColor(vec[index].x, vec[index].y, vec[index].z).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.x, vec.y, vec.z).getRGB(), 0xF7);
 				break;
 			case 1:
-				p.stroke(Color.getHSBColor(vec[index].x, vec[index].z, vec[index].y).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.x, vec.z, vec.y).getRGB(), 0xF7);
 				break;
 			case 2:
-				p.stroke(Color.getHSBColor(vec[index].y, vec[index].x, vec[index].z).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.y, vec.x, vec.z).getRGB(), 0xF7);
 				break;
 			case 3:
-				p.stroke(Color.getHSBColor(vec[index].y, vec[index].z, vec[index].x).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.y, vec.z, vec.x).getRGB(), 0xF7);
 				break;
 			case 4:
-				p.stroke(Color.getHSBColor(vec[index].z, vec[index].x, vec[index].y).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.z, vec.x, vec.y).getRGB(), 0xF7);
 				break;
 			case 5:
-				p.stroke(Color.getHSBColor(vec[index].z, vec[index].y, vec[index].x).getRGB(), 0xF7);
+				p.stroke(Color.getHSBColor(vec.z, vec.y, vec.x).getRGB(), 0xF7);
 				break;
 			case 6:
-				double zColor = vec[index].z;
+				double zColor = vec.z;
 				int theColor = 0;
 				if (zColor > 0) {
 					zColor = (zColor * 0xFF) / 1.33;
